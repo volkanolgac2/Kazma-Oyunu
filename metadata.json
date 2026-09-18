@@ -1,0 +1,6 @@
+{
+  "name": "Kazma Oyunu",
+  "description": "Toprağı kaz, gizli mücevherleri keşfet, sevimli köstebeklere dikkat et ve 100 heyecan verici seviyede yeni aletler ve kostümler aç!",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
