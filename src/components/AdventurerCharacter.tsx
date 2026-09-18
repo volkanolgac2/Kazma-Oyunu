@@ -8,6 +8,7 @@ interface AdventurerCharacterProps {
   className?: string;
   onClick?: () => void;
   trackTarget?: { x: number; y: number } | null;
+  hideEarSpots?: boolean;
 }
 
 export const AdventurerCharacter: React.FC<AdventurerCharacterProps> = ({
@@ -16,7 +17,8 @@ export const AdventurerCharacter: React.FC<AdventurerCharacterProps> = ({
   size = 'md',
   className = '',
   onClick,
-  trackTarget
+  trackTarget,
+  hideEarSpots = false
 }) => {
   const [tailWag, setTailWag] = useState(false);
   const [isBlinking, setIsBlinking] = useState(false);
@@ -347,8 +349,10 @@ export const AdventurerCharacter: React.FC<AdventurerCharacterProps> = ({
               strokeWidth="0.8" 
             />
             <path d="M 22,38 C 16,32 15,48 19,56 C 21,58 25,56 24,46 Z" fill="url(#dogEarPink)" opacity="0.8" />
-            {/* Big black spot on left floppy ear! */}
-            <ellipse cx="17" cy="50" rx="4.5" ry="6" fill="#0f172a" transform="rotate(15 17 50)" />
+            {/* Black spot on left floppy ear */}
+            {!hideEarSpots && (
+              <ellipse cx="17" cy="50" rx="4.5" ry="6" fill="#0f172a" transform="rotate(15 17 50)" />
+            )}
           </g>
 
           {/* Floppy Right Ear */}
@@ -361,7 +365,9 @@ export const AdventurerCharacter: React.FC<AdventurerCharacterProps> = ({
             />
             <path d="M 88,38 C 94,32 95,48 91,56 C 89,58 85,56 86,46 Z" fill="url(#dogEarPink)" opacity="0.8" />
             {/* Black spot on right ear tip */}
-            <circle cx="92" cy="54" r="4.2" fill="#0f172a" />
+            {!hideEarSpots && (
+              <circle cx="92" cy="54" r="4.2" fill="#0f172a" />
+            )}
           </g>
 
           {/* Chubby Round Head Shape (White Coat) */}
@@ -376,12 +382,15 @@ export const AdventurerCharacter: React.FC<AdventurerCharacterProps> = ({
             fill="#0f172a" 
           />
 
-          {/* Spot on forehead */}
-          <circle cx="56" cy="30" r="2.8" fill="#0f172a" />
+          {/* Spots on forehead and temple */}
+          {!hideEarSpots && (
+            <>
+              <circle cx="56" cy="30" r="2.8" fill="#0f172a" />
+              <circle cx="70" cy="34" r="2.4" fill="#0f172a" />
+            </>
+          )}
           {/* Spot on right cheek */}
           <ellipse cx="74" cy="48" rx="4.5" ry="3.2" fill="#0f172a" transform="rotate(-15 74 48)" />
-          {/* Spot on upper right temple */}
-          <circle cx="70" cy="34" r="2.4" fill="#0f172a" />
 
           {/* Cute White Snout / Muzzle */}
           <ellipse cx="55" cy="54" rx="14" ry="10" fill="#ffffff" stroke="#e2e8f0" strokeWidth="0.8" />

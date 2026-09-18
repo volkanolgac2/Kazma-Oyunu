@@ -164,6 +164,58 @@ export const ToolVisual: React.FC<ToolVisualProps> = ({
                 <path d="M 50,70 L 46,95 L 56,110 L 50,126" stroke="#ef4444" strokeWidth="2.5" fill="none" />
               </g>
             </g>
+          ) : toolId === 'small_brush' ? (
+            <g id="broken-small-brush">
+              {/* Upper snapped handle */}
+              <g transform="translate(-4, -6) rotate(-18 50 35)">
+                <rect x="46" y="8" width="8" height="35" rx="3" fill="url(#woodShaft)" stroke="#451a03" strokeWidth="1.2" />
+                <polygon points="46,43 54,43 52,38 48,41" fill="url(#woodShaft)" />
+              </g>
+              {/* Red crack sparks */}
+              <path d="M 40,42 L 48,48 L 44,56 L 54,60" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" filter="drop-shadow(0 0 4px #ef4444)" />
+              {/* Lower ferrule + frayed bristles */}
+              <g transform="translate(8, 14) rotate(20 50 95)">
+                <rect x="43" y="60" width="14" height="15" rx="2" fill="url(#basicIron)" stroke="#1e293b" strokeWidth="1.2" />
+                <path d="M 41,75 C 38,95 42,120 48,124 C 55,120 62,95 59,75 Z" fill="url(#bristleGrad)" stroke="#78350f" strokeWidth="1.5" />
+                <line x1="45" y1="75" x2="42" y2="115" stroke="#fef3c7" strokeWidth="1" />
+                <line x1="55" y1="75" x2="58" y2="115" stroke="#451a03" strokeWidth="1" />
+              </g>
+            </g>
+          ) : toolId === 'big_brush' ? (
+            <g id="broken-big-brush">
+              {/* Snapped wide grip handle */}
+              <g transform="translate(-6, -6) rotate(-20 50 30)">
+                <rect x="43" y="8" width="14" height="32" rx="5" fill="url(#woodShaft)" stroke="#451a03" strokeWidth="1.5" />
+                <circle cx="50" cy="18" r="3.5" fill="#291204" opacity="0.5" />
+              </g>
+              <path d="M 38,38 L 47,44 L 42,52 L 54,56" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" filter="drop-shadow(0 0 4px #ef4444)" />
+              {/* Lower wide ferrule + fanned bristles */}
+              <g transform="translate(10, 16) rotate(22 50 95)">
+                <polygon points="34,55 66,55 72,73 28,73" fill="url(#goldSpade)" stroke="#78350f" strokeWidth="1.5" />
+                <path d="M 28,73 C 20,90 22,123 50,127 C 78,123 80,90 72,73 Z" fill="url(#bristleGrad)" stroke="#78350f" strokeWidth="2" />
+                <line x1="38" y1="73" x2="32" y2="118" stroke="#fef3c7" strokeWidth="1.2" />
+                <line x1="62" y1="73" x2="68" y2="118" stroke="#451a03" strokeWidth="1.2" />
+              </g>
+            </g>
+          ) : toolId === 'rake' ? (
+            <g id="broken-rake">
+              {/* Snapped long wooden handle */}
+              <g transform="translate(-6, -8) rotate(-22 50 35)">
+                <rect x="46" y="6" width="8" height="52" rx="3" fill="url(#woodShaft)" stroke="#451a03" strokeWidth="1.2" />
+              </g>
+              <path d="M 38,50 L 46,56 L 42,64 L 54,68" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" filter="drop-shadow(0 0 4px #ef4444)" />
+              {/* Bent and broken crossbar with tines */}
+              <g transform="translate(10, 18) rotate(24 50 100)">
+                <polygon points="40,70 60,70 78,84 22,84" fill="url(#basicIron)" stroke="#1e293b" strokeWidth="1.5" />
+                <rect x="14" y="82" width="72" height="8" rx="2" fill="#334155" stroke="#0f172a" strokeWidth="1.5" transform="rotate(-8 50 86)" />
+                {/* Bent/broken tines */}
+                <path d="M 20,90 L 14,112 Q 12,118 18,116" stroke="#475569" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+                <path d="M 35,90 L 32,115" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" fill="none" />
+                <path d="M 50,90 L 50,118 Q 50,122 56,120" stroke="#64748b" strokeWidth="4" strokeLinecap="round" fill="none" />
+                <path d="M 65,90 L 72,112" stroke="#475569" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+                <path d="M 80,90 L 86,110" stroke="#475569" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+              </g>
+            </g>
           ) : (
             <g id="broken-tool">
               <g transform="translate(-6, -6) rotate(-20 50 35)">

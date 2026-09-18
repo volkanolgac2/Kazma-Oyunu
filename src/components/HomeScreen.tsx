@@ -75,12 +75,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
       {/* Character Hero Spotlight */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center min-h-0 my-1">
-        {/* Dalmatian Puppy Character */}
-        <div className="transform scale-90 sm:scale-100 transition-transform origin-center">
+        {/* Dalmatian Puppy Character - Expanded upwards and 30% larger on Home Screen */}
+        <div className="transform scale-[1.3] sm:scale-[1.4] scale-y-[1.35] transition-transform origin-bottom my-1.5">
           <AdventurerCharacter
             costume={progress.equippedCostume}
             size="lg"
             mood="idle"
+            hideEarSpots={true}
           />
         </div>
 

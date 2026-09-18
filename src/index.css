@@ -422,6 +422,28 @@
   animation-delay: 1.35s;
 }
 
+/* Tool break impact pop without changing X or Y position */
+@keyframes toolBreakPop {
+  0% {
+    transform: scale(0.5) rotate(-10deg);
+    opacity: 0.8;
+  }
+  40% {
+    transform: scale(1.2) rotate(5deg);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(0.92) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-tool-break-pop {
+  animation: toolBreakPop 0.45s ease-out forwards;
+}
+
 /* Custom scrollbars for level select and shop */
 ::-webkit-scrollbar {
   width: 6px;

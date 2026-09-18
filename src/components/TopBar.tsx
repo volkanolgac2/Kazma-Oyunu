@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pause, Heart, Clock } from 'lucide-react';
 import { DiamondVisual } from './DiamondVisual';
+import { sound } from '../utils/audio';
 
 interface TopBarProps {
   level: number;
@@ -11,6 +12,7 @@ interface TopBarProps {
   maxDiamondsInLevel: number;
   timeLeft: number;
   onPauseClick: () => void;
+  onLevelClick?: () => void;
   isCounterPulsing?: boolean;
 }
 
@@ -23,6 +25,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   maxDiamondsInLevel,
   timeLeft,
   onPauseClick,
+  onLevelClick,
   isCounterPulsing = false
 }) => {
   const isTimeLow = timeLeft <= 10;
@@ -40,11 +43,19 @@ export const TopBar: React.FC<TopBarProps> = ({
           <Pause className="w-4 h-4 stroke-[3]" />
         </button>
 
-        {/* Level Indicator Badge - Green Theme */}
-        <div className="game-card-green px-2.5 py-0.5 sm:py-1 rounded-xl shadow-md flex items-center gap-1 border border-emerald-950">
+        {/* Level Indicator Badge - Clickable to open Level Select Modal */}
+        <button
+          onClick={() => {
+            sound.playButtonClick();
+            onLevelClick?.();
+          }}
+          className="game-card-green px-2.5 py-0.5 sm:py-1 rounded-xl shadow-md flex items-center gap-1 border border-emerald-950 cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+          title="Bölüm Seçim Ekranını Aç"
+          aria-label="Level Select"
+        >
           <span className="text-emerald-200 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Seviye</span>
           <span className="text-white text-sm sm:text-base font-black">{level}</span>
-        </div>
+        </button>
 
         {/* 45s Countdown Timer */}
         <div 

@@ -49,6 +49,7 @@ interface DiggingBoardProps {
   onDynamiteUsed?: () => void;
   hintTriggerTime?: number;
   onRelocateGem?: (oldCellId: string, targetCellId: string, targetX: number, targetY: number) => void;
+  onTransformCell?: (cellId: string, newType: CellType) => void;
 }
 
 export const DiggingBoard: React.FC<DiggingBoardProps> = ({
@@ -67,7 +68,8 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
   isDynamiteActive = false,
   onDynamiteUsed,
   hintTriggerTime = 0,
-  onRelocateGem
+  onRelocateGem,
+  onTransformCell
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -122,13 +124,18 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
 
   const lastDigSoundTime = useRef<number>(0);
   const lastDigPoint = useRef<{ x: number; y: number } | null>(null);
+  const lastBreakCoordRef = useRef<{ x: number; y: number } | null>(null);
   const digAnimTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastProcessedHintTimeRef = useRef<number>(0);
 
   // -------------------------------------------------------------
-  // HINT TRIGGER LOGIC: HIGHLIGHT A HIDDEN DIAMOND
+  // HINT TRIGGER LOGIC: HIGHLIGHT A SINGLE HIDDEN DIAMOND
   // -------------------------------------------------------------
   useEffect(() => {
     if (!hintTriggerTime || hintTriggerTime <= 0) return;
+    if (hintTriggerTime <= lastProcessedHintTimeRef.current) return;
+
+    lastProcessedHintTimeRef.current = hintTriggerTime;
 
     // Find any uncollected hidden diamond
     const uncollectedGems = cells.filter(c => 
@@ -138,7 +145,7 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
     );
 
     if (uncollectedGems.length > 0) {
-      // Prioritize rare -> large -> normal or pick randomly
+      // Prioritize rare -> large -> normal
       const sorted = [...uncollectedGems].sort((a, b) => (b.diamondValue || 1) - (a.diamondValue || 1));
       const target = sorted[0];
       setActiveHintGemId(target.id);
@@ -196,8 +203,8 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
       setIsDiggingAnim(false);
       if (onShovelMove) onShovelMove(null);
 
-      // Determine where the shovel broke
-      let spot = shovelPos || lastDigPoint.current || lastActivePointerPos.current;
+      // Determine where the tool broke (exact scraping spot)
+      let spot = lastBreakCoordRef.current || shovelPos || lastDigPoint.current || lastActivePointerPos.current;
       if (!spot && canvasRef.current) {
         const rect = canvasRef.current.getBoundingClientRect();
         spot = { x: rect.width / 2, y: rect.height / 2 };
@@ -208,6 +215,7 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
       }
     } else {
       setBrokenSpot(null);
+      lastBreakCoordRef.current = null;
     }
   }, [isShovelBroken]);
 
@@ -264,6 +272,26 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
       });
     }
     setParticles(prev => [...prev.slice(-50), ...newParticles]);
+  };
+
+  const spawnRockParticles = (rx: number, ry: number) => {
+    const rockColors = ['#94a3b8', '#64748b', '#475569', '#334155', '#cbd5e1', '#e2e8f0'];
+    const newParticles: Particle[] = [];
+    for (let i = 0; i < 16; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 2.5 + Math.random() * 5.5;
+      newParticles.push({
+        id: `rock_p_${Date.now()}_${i}_${Math.random()}`,
+        x: rx,
+        y: ry,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 2.0,
+        color: rockColors[Math.floor(Math.random() * rockColors.length)],
+        size: 3 + Math.random() * 4.5,
+        life: 1.2
+      });
+    }
+    setParticles(prev => [...prev.slice(-60), ...newParticles]);
   };
 
   const spawnMoleCrumbleEffect = (cx: number, cy: number, rx: number, ry: number) => {
@@ -485,6 +513,25 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
                   }
                 }, 650);
               }
+            }
+          }
+        });
+
+        // 3. Taş Kaya kontrolü: Patlama etki alanı içindeki kayalar küçük parçalara ayrılır, içinden küçük bir mücevher çıkabilir!
+        cells.forEach(cell => {
+          if (cell.type === 'rock') {
+            const rx = ((cell.x + 0.5) / levelConfig.cols) * width;
+            const ry = ((cell.y + 0.5) / levelConfig.rows) * height;
+            const dist = Math.hypot(x - rx, y - ry);
+
+            if (dist < blastRadius + 20) {
+              spawnRockParticles(rx, ry);
+              const revealsGem = Math.random() < 0.65;
+              const newType = revealsGem ? 'diamond' : 'empty';
+              if (onTransformCell) {
+                onTransformCell(cell.id, newType as CellType);
+              }
+              sound.playPickaxeStrike();
             }
           }
         });
@@ -878,6 +925,7 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
             next.add(cell.id);
             return next;
           });
+          setActiveHintGemId(prev => (prev === cell.id ? null : prev));
           setLastExcavatedPos({ x: gemX, y: gemY });
           onDigCell(cell);
 
@@ -970,6 +1018,14 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
       }
 
       if (isHit) {
+        // Save exact break position where tool struck/scraped so broken tool stays there and doesn't jump onto mole
+        if (!lastBreakCoordRef.current) {
+          lastBreakCoordRef.current = {
+            x: shovelX ?? (shovelPos ? shovelPos.x : lastDigPoint.current ? lastDigPoint.current.x : hatCenterX),
+            y: shovelY ?? (shovelPos ? shovelPos.y : lastDigPoint.current ? lastDigPoint.current.y : hatCenterY)
+          };
+        }
+
         // Bu kazma işleminde bir köstebeğin açıldığını işaretle ve zaman damgasını kaydet
         moleTriggeredInCurrentDig.current = true;
         lastMoleTriggerTimestamp.current = Date.now();
@@ -1250,7 +1306,7 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
       {/* Archaeology Dig Pit Container - Deep Soil / Dark Bedrock Theme */}
       <div 
         ref={containerRef}
-        className="relative w-full flex-1 h-full min-h-[380px] xs:min-h-[430px] sm:min-h-[490px] max-h-[70vh] rounded-2xl overflow-hidden border-3 sm:border-4 border-emerald-950 shadow-[0_10px_28px_rgba(0,0,0,0.65),inset_0_4px_8px_rgba(0,0,0,0.5)]"
+        className="relative w-full flex-1 h-full min-h-[360px] rounded-2xl overflow-hidden border-3 sm:border-4 border-emerald-950 shadow-[0_10px_28px_rgba(0,0,0,0.65),inset_0_4px_8px_rgba(0,0,0,0.5)]"
         style={{
           background: 'linear-gradient(180deg, #2b1406 0%, #1c0c04 45%, #100602 100%)'
         }}
@@ -1320,21 +1376,24 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
                   (() => {
                     if (isDefeatedMole) {
                       return (
-                        <div className="relative flex flex-col items-center justify-center opacity-65 scale-85 transition-all">
+                        <div className="relative flex flex-col items-center justify-center opacity-70 scale-90 transition-all">
                           {/* Dizzy stars spinning above defeated mole */}
                           <div className="absolute -top-3 flex items-center gap-1 text-[11px] animate-spin" style={{ animationDuration: '2.5s' }}>
                             <span>💫</span>
                             <span>✨</span>
                           </div>
-                          <div className="grayscale-[50%] rotate-12">
+                          <div className="grayscale-[40%] rotate-12">
                             <CreatureVisual
                               type={cell.creatureType}
                               size="md"
                               isDiscovered={true}
                             />
                           </div>
-                          <div className="absolute -bottom-2 px-1.5 py-0.2 bg-stone-900/90 border border-red-500/80 rounded text-[7px] font-black text-red-300 whitespace-nowrap shadow">
-                            YOK EDİLDİ 💥
+                          {/* Bold Red "X" Overlay directly over defeated mole */}
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                            <span className="text-red-600 font-black text-2xl sm:text-3xl filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] animate-pulse select-none">
+                              ❌
+                            </span>
                           </div>
                         </div>
                       );
@@ -1536,22 +1595,23 @@ export const DiggingBoard: React.FC<DiggingBoardProps> = ({
         {/* Broken Tool Display on Excavation Soil */}
         {isShovelBroken && brokenSpot && (
           <div 
-            className="pointer-events-none absolute z-40 animate-[bounce_0.6s_ease-out]"
+            className="pointer-events-none absolute z-40 -translate-x-1/2 -translate-y-1/2"
             style={{
               left: `${brokenSpot.x}px`,
-              top: `${brokenSpot.y}px`,
-              transform: 'translate(-50%, -50%)'
+              top: `${brokenSpot.y}px`
             }}
           >
             {/* Red Shockwave ring behind break */}
             <div className="absolute -inset-8 rounded-full bg-rose-500/25 animate-ping pointer-events-none" />
 
-            {/* Broken Tool Graphic (Shovel, Drill, Pickaxe, etc.) */}
-            <ToolVisual
-              toolId={equippedTool.id}
-              size="lg"
-              isBroken={true}
-            />
+            {/* Broken Tool Graphic (Shovel, Drill, Pickaxe, etc.) with scale pop */}
+            <div className="relative animate-tool-break-pop">
+              <ToolVisual
+                toolId={equippedTool.id}
+                size="lg"
+                isBroken={true}
+              />
+            </div>
           </div>
         )}
 

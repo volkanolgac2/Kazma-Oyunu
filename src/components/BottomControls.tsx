@@ -88,7 +88,7 @@ export const BottomControls: React.FC<BottomControlsProps> = ({
   return (
     <footer 
       ref={menuContainerRef} 
-      className="w-full max-w-md mx-auto px-2 sm:px-3 pb-1 sm:pb-2 pt-0.5 flex flex-col gap-1 select-none z-30 relative shrink-0"
+      className="w-full max-w-md mx-auto px-2 sm:px-3 pb-1 pt-0 flex flex-col gap-1 select-none z-30 relative shrink-0 -mt-1 sm:-mt-2"
     >
       {/* Quick Tool Switcher Bubble Tray (Appears above KAZ button) */}
       {isToolMenuOpen && !isShovelBroken && (

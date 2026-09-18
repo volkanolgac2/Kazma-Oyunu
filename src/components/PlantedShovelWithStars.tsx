@@ -3,7 +3,7 @@ import { ToolId } from '../types/game';
 import { ToolVisual } from './ToolVisual';
 
 interface PlantedShovelWithStarsProps {
-  toolId: ToolId;
+  toolId?: ToolId;
   x: number;
   y: number;
 }
@@ -66,11 +66,11 @@ export const PlantedShovelWithStars: React.FC<PlantedShovelWithStarsProps> = ({
       }}
     >
       {/* 1. Ground Impact Shockwaves */}
-      <div className="absolute -translate-x-1/2 -translate-y-1/2 -top-2 left-0 w-28 h-10 rounded-[100%] bg-amber-400/30 blur-md animate-ping" />
-      <div className="absolute -translate-x-1/2 -translate-y-1/2 -top-2 left-0 w-36 h-12 rounded-[100%] border-2 border-amber-300/60 animate-[ping_1.2s_cubic-bezier(0,0,0.2,1)_infinite]" />
+      <div className="absolute -translate-x-1/2 -translate-y-1/2 top-0 left-0 w-28 h-10 rounded-[100%] bg-amber-400/30 blur-md animate-ping" />
+      <div className="absolute -translate-x-1/2 -translate-y-1/2 top-0 left-0 w-36 h-12 rounded-[100%] border-2 border-amber-300/60 animate-[ping_1.2s_cubic-bezier(0,0,0.2,1)_infinite]" />
 
       {/* 2. Rotating Radiant Starburst Aura behind Shovel */}
-      <div className="absolute -translate-x-1/2 -translate-y-1/2 -top-16 left-0 w-64 h-64 pointer-events-none opacity-80 animate-spin-slow">
+      <div className="absolute -translate-x-1/2 -translate-y-1/2 top-0 left-0 w-64 h-64 pointer-events-none opacity-80 animate-spin-slow">
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>
             <radialGradient id="starburstGrad" cx="50%" cy="50%" r="50%">
@@ -92,12 +92,16 @@ export const PlantedShovelWithStars: React.FC<PlantedShovelWithStarsProps> = ({
         </svg>
       </div>
 
-      {/* 3. The Planted Shovel thrust firmly into the earth */}
-      <div className="relative animate-shovel-plant filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.7)] drop-shadow-[0_0_20px_rgba(250,204,21,0.6)]">
-        <ToolVisual
-          toolId={toolId}
-          size="lg"
-        />
+      {/* 3. The Equipped Digging Tool standing/planted at the last found gem sparkle location */}
+      <div className="absolute left-0 top-0 pointer-events-none z-10 flex flex-col items-center justify-center">
+        <div 
+          className="relative animate-shovel-plant filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.7)] drop-shadow-[0_0_20px_rgba(250,204,21,0.7)] overflow-visible flex items-center justify-center w-20 h-28"
+        >
+          <ToolVisual
+            toolId={toolId}
+            size="lg"
+          />
+        </div>
       </div>
 
       {/* 4. Starry Animation: Radiating Twinkling & Floating Stars */}
@@ -112,7 +116,7 @@ export const PlantedShovelWithStars: React.FC<PlantedShovelWithStarsProps> = ({
               className="absolute -translate-x-1/2 -translate-y-1/2"
               style={{
                 left: '0px',
-                top: '-10px',
+                top: '0px',
                 animation: `starFloatBurst ${star.duration}s ease-out infinite`,
                 animationDelay: `${star.delay}s`,
                 // Pass target translations via CSS variables

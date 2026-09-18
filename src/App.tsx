@@ -188,6 +188,21 @@ export default function App() {
     });
   }, []);
 
+  const handleTransformCell = useCallback((cellId: string, newType: CellType) => {
+    setCells(prevCells => {
+      const idx = prevCells.findIndex(c => c.id === cellId);
+      if (idx === -1) return prevCells;
+      const next = [...prevCells];
+      next[idx] = {
+        ...next[idx],
+        type: newType,
+        diamondValue: newType === 'diamond' ? 1 : 0,
+        isExcavated: true,
+      };
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     return () => {
       if (gameOverTimeoutRef.current) {
@@ -379,11 +394,12 @@ export default function App() {
           if (gameOverTimeoutRef.current) {
             clearTimeout(gameOverTimeoutRef.current);
           }
-          // Köstebek bulunduktan ve kürek kırıldıktan tam 3 saniye sonra Game Over ekranı gelsin
+          // Köstebek bulunduktan ve kürek kırıldıktan sonra Game Over ekranı geliş süresi
+          // (0.5 sn kırılma bekleme süresi artışı + 1 sn kırmızı ışıkla yanan mücevherlerin ekranda kalma süresi = toplam 4.5 saniye)
           gameOverTimeoutRef.current = setTimeout(() => {
             setIsGameOver(true);
             setIsGameOverPending(false);
-          }, 3000);
+          }, 4500);
         }
         nextCells[cellIndex] = cell;
         return nextCells;
@@ -515,7 +531,7 @@ export default function App() {
 
         {activeScreen === 'gameplay' && (
           // Active Gameplay View
-          <div className="relative w-full h-full flex flex-col justify-between p-1.5 sm:p-2.5 overflow-hidden">
+          <div className="relative w-full h-full flex flex-col justify-start items-center p-1.5 sm:p-2 overflow-hidden gap-1">
             {/* Top HUD with 45s timer and max diamonds tracker */}
             <TopBar
               level={levelConfig.level}
@@ -526,11 +542,12 @@ export default function App() {
               maxDiamondsInLevel={maxDiamondsInLevel}
               timeLeft={timeLeft}
               onPauseClick={() => setIsPaused(true)}
+              onLevelClick={() => setIsLevelSelectOpen(true)}
               isCounterPulsing={isCounterPulsing}
             />
 
-            {/* Center Underground Excavation Board (Expanded to fill vertical space) */}
-            <div className="flex-1 w-full my-1 z-10 min-h-0 flex flex-col justify-center">
+            {/* Combined Group: Excavation Board + Attached Bottom Controls directly touching the bottom green line */}
+            <div className="w-full max-w-md mx-auto flex-1 flex flex-col items-center justify-start min-h-0">
               <DiggingBoard
                 key={`board_${levelConfig.level}_${boardVersion}`}
                 levelConfig={levelConfig}
@@ -544,6 +561,7 @@ export default function App() {
                 onDynamiteUsed={() => setIsDynamiteActive(false)}
                 hintTriggerTime={hintTriggerTime}
                 onRelocateGem={handleRelocateGem}
+                onTransformCell={handleTransformCell}
                 onDigCell={handleDigCell}
                 onDiamondCollect={handleDiamondCollect}
                 onTriggerCheer={() => {
@@ -557,31 +575,31 @@ export default function App() {
                 onShovelMove={setShovelTrackPos}
                 shovelRestingRef={shovelDockRef}
               />
-            </div>
 
-            {/* Bottom Controls Strip with In-Game Quick Tool Switcher, Dog on Left, Shop & Clothes on Right, Dynamite & Hint buttons flanking Shovel */}
-            <BottomControls
-              equippedTool={equippedToolItem}
-              ownedTools={progress.ownedTools}
-              onEquipTool={handleEquipTool}
-              onOpenShop={() => setIsShopOpen(true)}
-              onOpenCharacter={() => setIsCharacterOpen(true)}
-              shovelDockRef={shovelDockRef}
-              isShovelBroken={isShovelBroken}
-              isDynamiteActive={isDynamiteActive}
-              onToggleDynamite={handleToggleDynamite}
-              isHintActive={isHintActive}
-              onTriggerHint={handleTriggerHint}
-              companionCostume={progress.equippedCostume}
-              companionMood={characterMood}
-              companionTrackTarget={shovelTrackPos}
-              remainingDiamonds={cells.filter(c => (c.type === 'diamond' || c.type === 'large_diamond' || c.type === 'rare_diamond') && !c.hasCollected).length}
-              onCompanionClick={() => {
-                setCharacterMood('cheering');
-                sound.playDiamondCollect();
-                setTimeout(() => setCharacterMood('idle'), 1200);
-              }}
-            />
+              {/* Bottom Controls Strip immediately attached right below the green border line of DiggingBoard */}
+              <BottomControls
+                equippedTool={equippedToolItem}
+                ownedTools={progress.ownedTools}
+                onEquipTool={handleEquipTool}
+                onOpenShop={() => setIsShopOpen(true)}
+                onOpenCharacter={() => setIsCharacterOpen(true)}
+                shovelDockRef={shovelDockRef}
+                isShovelBroken={isShovelBroken}
+                isDynamiteActive={isDynamiteActive}
+                onToggleDynamite={handleToggleDynamite}
+                isHintActive={isHintActive}
+                onTriggerHint={handleTriggerHint}
+                companionCostume={progress.equippedCostume}
+                companionMood={characterMood}
+                companionTrackTarget={shovelTrackPos}
+                remainingDiamonds={cells.filter(c => (c.type === 'diamond' || c.type === 'large_diamond' || c.type === 'rare_diamond') && !c.hasCollected).length}
+                onCompanionClick={() => {
+                  setCharacterMood('cheering');
+                  sound.playDiamondCollect();
+                  setTimeout(() => setCharacterMood('idle'), 1200);
+                }}
+              />
+            </div>
           </div>
         )}
 
